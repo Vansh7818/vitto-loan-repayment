@@ -3,14 +3,14 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Loan {
   id                 String        @id @default(uuid())
-  principal          Decimal       @db.Decimal(12, 2)
-  annualInterestRate Decimal       @db.Decimal(5, 4)
+  principal          Decimal       
+  annualInterestRate Decimal       
   tenureMonths       Int
   disbursementDate   DateTime
   createdAt          DateTime      @default(now())
@@ -25,10 +25,10 @@ model Installment {
   loanId             String
   installmentNumber  Int
   dueDate            DateTime
-  principalComponent Decimal  @db.Decimal(12, 2)
-  interestComponent  Decimal  @db.Decimal(12, 2)
-  totalDue           Decimal  @db.Decimal(12, 2)
-  amountPaid         Decimal  @db.Decimal(12, 2) @default(0)
+  principalComponent Decimal  
+  interestComponent  Decimal  
+  totalDue           Decimal  
+  amountPaid         Decimal  @default(0)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   
@@ -38,7 +38,7 @@ model Installment {
 model Payment {
   id                 String   @id @default(uuid())
   loanId             String
-  amount             Decimal  @db.Decimal(12, 2)
+  amount             Decimal  
   paymentDate        DateTime
   idempotencyKey     String   @unique
   createdAt          DateTime @default(now())
