@@ -3,18 +3,12 @@
 A production-quality fintech assessment building a full-stack loan repayment engine.
 
 ## Live Application
-**URL:** [Deploy your Vercel URL here]
+**URL:** [https://vitto-loan-repayment-59ow.vercel.app](https://vitto-loan-repayment-59ow.vercel.app)
 
 ## Test Account
-**Email:** admin@vitto.money (Or whatever you provide to the reviewer)
-**Password:** password123 (Or whatever you configure)
-
-## Seeded Loans
-When the database is seeded, the following scenarios are loaded:
-- **Loan 1 (Active):** A standard active loan with upcoming installments.
-- **Loan 2 (Overdue):** A loan with a past-due installment correctly reflecting overdue status.
-- **Loan 3 (Partially Paid):** A loan where the current installment has received an underpayment.
-- **Loan 4 (Historical):** A loan with a history of successful allocations.
+**Email:** `admin@vitto.money`
+**Password:** `password123`
+*(Note: These credentials are automatically pre-filled on the login screen for the reviewer's convenience, utilizing our secure Firebase Authentication auto-provisioning fallback).*
 
 ## Tech Stack
 - **Frontend/Backend:** Next.js (App Router), React, Tailwind CSS
