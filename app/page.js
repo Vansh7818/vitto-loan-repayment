@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
   signInWithRedirect, 
   GoogleAuthProvider, 
   onAuthStateChanged, 
@@ -117,7 +118,15 @@ export default function Home() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
-      setAuthError('Authentication failed: ' + error.message);
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+        try {
+          await createUserWithEmailAndPassword(auth, email, password);
+        } catch (signupError) {
+          setAuthError('Sign-in failed. Could not auto-create account: ' + signupError.message);
+        }
+      } else {
+        setAuthError('Authentication failed: ' + error.message);
+      }
     }
   };
 
