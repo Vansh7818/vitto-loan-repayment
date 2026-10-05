@@ -6,17 +6,26 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run"
   },
   "dependencies": {
+    "decimal.js": "^10.6.0",
+    "firebase": "^12.19.0",
+    "lucide-react": "^1.52.0",
+    "next": "^14.2.35",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.35"
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
+    "@prisma/client": "^5.22.0",
     "eslint": "^8",
-    "eslint-config-next": "14.2.35"
+    "eslint-config-next": "14.2.35",
+    "postcss": "^8",
+    "prisma": "^5.22.0",
+    "supertest": "^7.3.1",
+    "tailwindcss": "^3.4.1",
+    "vitest": "^5.0.3"
   }
 }
