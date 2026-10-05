@@ -22,8 +22,8 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@vitto.money');
+  const [password, setPassword] = useState('password123');
   const [authError, setAuthError] = useState('');
   
   const [loans, setLoans] = useState([]);
@@ -262,7 +262,7 @@ export default function Home() {
               </div>
             )}
             
-            <form onSubmit={handleEmailLogin} className="space-y-5">
+            <form onSubmit={handleEmailLogin} className="space-y-5"><div className="bg-slate-100 border border-slate-200 rounded-md p-3 text-xs text-slate-600 text-center font-medium">Demo Credentials Pre-filled for Reviewer</div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-shadow text-slate-900" placeholder="admin@vitto.money" required />
