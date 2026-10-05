@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
   signInWithEmailAndPassword, 
-  signInWithPopup, 
+  signInWithRedirect, 
   GoogleAuthProvider, 
   onAuthStateChanged, 
   signOut 
 } from 'firebase/auth';
+
 import { auth } from '../lib/firebase';
 import { v4 as uuidv4 } from 'uuid';
 import { 
@@ -114,7 +115,7 @@ export default function Home() {
   const handleGoogleLogin = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (error) {
       setAuthError('Google sign-in failed: ' + error.message);
     }
