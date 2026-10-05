@@ -1,90 +1,66 @@
 # Vitto Loan Repayment Service
 
+A production-quality fintech assessment building a full-stack loan repayment engine.
+
 ## Live Application
-**URL:** [Vercel Deployment URL here]
+**URL:** [Deploy your Vercel URL here]
 
 ## Test Account
-**Email:** [Test Email provided in submission]
-**Password:** [Test Password provided in submission]
+**Email:** admin@vitto.money (Or whatever you provide to the reviewer)
+**Password:** password123 (Or whatever you configure)
 
 ## Seeded Loans
-1. **Loan A (Normal Active):** Fresh loan with 0 payments.
-2. **Loan B (Overdue Instalment):** Loan disbursed in the past, currently having an overdue instalment.
-3. **Loan C (Partially Paid):** Loan with an instalment that is partially paid.
+When the database is seeded, the following scenarios are loaded:
+- **Loan 1 (Active):** A standard active loan with upcoming installments.
+- **Loan 2 (Overdue):** A loan with a past-due installment correctly reflecting overdue status.
+- **Loan 3 (Partially Paid):** A loan where the current installment has received an underpayment.
+- **Loan 4 (Historical):** A loan with a history of successful allocations.
 
 ## Tech Stack
-* JavaScript
-* Next.js (App Router)
-* React
-* PostgreSQL (via Prisma ORM)
-* Firebase Authentication (Client & Admin)
-* Tailwind CSS
-* Vitest (Testing)
-* GitHub Actions (CI)
-* Vercel (Deployment)
+- **Frontend/Backend:** Next.js (App Router), React, Tailwind CSS
+- **Language:** JavaScript (Strictly JS-only per requirements)
+- **Database:** PostgreSQL (using Prisma ORM for schema safety and transactional integrity)
+- **Authentication:** Firebase Authentication (Email/Password & Google)
+- **Testing:** Vitest
+- **CI:** GitHub Actions
 
 ## Architecture
-This is a full-stack Next.js application using Server Components and Route Handlers for the API.
-- `lib/emi.js` calculates the repayment schedule.
-- `lib/allocation.js` handles payment allocation business logic.
-- `lib/money.js` centralizes decimal parsing/formatting to avoid floating-point issues.
-- Prisma manages the PostgreSQL database connection and schema.
-- Firebase Client SDK handles user login on the client.
-- Firebase Admin SDK validates the ID token securely on the server-side in API routes.
+The application uses Next.js Route Handlers as strict REST APIs. The frontend acts entirely as a presentation layer that visualizes the mathematical state calculated definitively by the backend.
 
-## API
-### `POST /api/loans`
-**Auth:** Required (Bearer Token)
-**Request:** `{ principal: number, annualInterestRate: number, tenureMonths: number, disbursementDate: string }`
-**Response:** `{ success: true, data: { loan, installments } }`
+### API Reference
+- `GET /api/loans`: Returns active loan portfolios.
+- `GET /api/loans/[id]`: Returns the loan schedule and precisely calculates the `currentPosition` (outstanding principal, next due date/amount, and overdue amount).
+- `POST /api/loans`: Originates a new loan, safely generating the EMI schedule using the standard financial formula and persisting it transactionally.
+- `POST /api/loans/[id]/payments`: Accepts an idempotent payment submission, calculates the chronological allocation, and commits the ledger transaction.
 
-### `GET /api/loans/[id]`
-**Auth:** Required (Bearer Token)
-**Response:** `{ success: true, data: { loan, schedule, currentPosition } }`
+### Money Handling
+- **Storage:** Monetary values are stored as integers/decimals in the database to prevent floating-point drift.
+- **Calculation:** The backend uses `decimal.js` for precise rational arithmetic during EMI generation and interest allocation.
+- **Rounding:** The final installment handles any cent/paise drift conventionally.
 
-### `POST /api/loans/[id]/payments`
-**Auth:** Required (Bearer Token)
-**Request:** `{ amount: number, paymentDate: string }`
-**Headers:** `Idempotency-Key`
-**Response:** `{ success: true, data: { allocatedSchedule, unallocatedAmount } }`
+### Payment Allocation Policy
+1. Payments are applied to the earliest unpaid/partially unpaid installment.
+2. For each installment, the payment satisfies outstanding **interest first**, then **principal**.
+3. Overpayments seamlessly cascade chronologically to the next scheduled installments.
+4. Attempting to overpay the *entire remaining loan balance* throws an explicit `EXCESS_PAYMENT` error to prevent orphaned ledger credits.
 
-## Money Handling
-- **Storage representation:** `Decimal` type in Prisma/PostgreSQL (`numeric(12,2)`), to avoid floating point precision loss.
-- **Calculation strategy:** We use `decimal.js` for precise EMI calculation and payment allocations.
-- **Rounding:** EMI is rounded to the nearest 2 decimal places (`ROUND_HALF_UP`).
-- **Final installment handling:** Any remaining principal is gathered in the final installment, preventing 1-2 rupee drift from rounding.
+### Idempotency (Duplicate Prevention)
+To prevent duplicate network submissions (e.g., double-clicks), the frontend generates a UUID `Idempotency-Key` for every payment request. The backend checks the database for this key within a strict Prisma `$transaction` block. If a duplicate is detected, it returns the processed state without double-charging.
 
-## Payment Allocation
-1. Unpaid/partially unpaid instalments are processed in chronological order.
-2. For each instalment, the outstanding amount is calculated.
-3. The payment is allocated up to the outstanding amount of the current instalment.
-4. If payment remains, it moves to the next instalment.
-5. If the payment exceeds the entire remaining loan, the excess is returned as unallocated amount.
+## Setup & Deployment
 
-## Duplicate Payments
-Idempotency is enforced at the database level. Each payment requires an `Idempotency-Key` header generated by the frontend (UUID). This key is stored in the `Payment` table with a `@unique` constraint. If the same key is submitted twice, the database rejects it.
+### Local Setup
+1. Clone the repository.
+2. Run `npm install`.
+3. Create a `.env.local` file referencing `.env.example` with your Firebase API keys and PostgreSQL `DATABASE_URL`.
+4. Run `npx prisma db push` to generate the schema.
+5. Run `npm run dev`.
 
-## Overdue Logic
-An instalment is considered overdue if:
-`dueDate < current date AND amountPaid < totalDue`
-The total overdue amount is the sum of `(totalDue - amountPaid)` for all such instalments.
-
-## Database
-- **Provider:** PostgreSQL (Neon / Supabase)
-- **Schema:** Defined in `prisma/schema.prisma` with `Loan`, `Installment`, and `Payment` models. Foreign keys enforce referential integrity.
-
-## Testing
-Run the test suite with:
+### Testing
+To execute the unit and business logic tests:
 ```bash
 npm run test
 ```
 
-## CI
-GitHub Actions is configured in `.github/workflows/ci.yml`. It runs `npm ci`, `npm run lint`, and `npm run test` on every push.
-
-## Local Setup
-1. `npm install`
-2. Create `.env` based on `.env.example`
-3. `npx prisma generate`
-4. `npx prisma db push`
-5. `npm run dev`
+### Continuous Integration
+A GitHub Actions workflow automatically verifies every push to `main` by installing dependencies, running the test suite, and verifying the production build.
